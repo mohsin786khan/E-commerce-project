@@ -1,8 +1,11 @@
 const Product = require('../models/product');
+const ErrorHandler = require('../utils/errorHandlers');
+const catchAsyncError = require('../midllewares/catchAsyncError');
+
 
 //create new product=>  api/vi/product/new
 
-exports.newProduct = async (req, res, next) => {
+exports.newProduct = catchAsyncError( async (req, res, next) => {
 
     const product = await Product.create(req.body);
 
@@ -10,11 +13,11 @@ exports.newProduct = async (req, res, next) => {
         success: true,
         product
     })
-}
+})
 
 
 //get all products=> /api/vi/products
-exports.getProducts = async (req, res, next) => {
+exports.getProducts = catchAsyncError( async (req, res, next) => {
 
     const products = await Product.find();
 
@@ -23,39 +26,32 @@ exports.getProducts = async (req, res, next) => {
         count:products.length,
         products
 })  
-}
+})
 
 //gets ingle product information-> /api/vi/product/:id
 
-exports.getSingleProduct = async (req, res, next) => {
+exports.getSingleProduct = catchAsyncError( async (req, res, next) => {
     
     const product = await Product.findById(req.params.id);
 
     if (!product) {
-        return res.status(404).json({
-            sucesss: false,
-            message:'product not found'
-         })        
+        return next(new ErrorHandler('product not found', 404));
     }
    
      res.status(200).json({
          sucess: true,
          product
      })
-
-}
+})
 
 // update product =>  /api/vi/admin/product/:id
 
-exports.updateProduct = async (req, res, next) => {
+exports.updateProduct = catchAsyncError( async (req, res, next) => {
 
     let product = await Product.findById(req.params.id);
     
     if (!product) {
-        return res.status(404).json({
-            sucesss: false,
-            message:'product not found'
-         })        
+        return next(new ErrorHandler('product not found', 404));     
     }
 
     product = await Product.findByIdAndUpdate(req.params.id, req.body, {
@@ -69,20 +65,17 @@ exports.updateProduct = async (req, res, next) => {
         product
     })
     
-}
+})
 
 // delete product => api/vi/admin/product/:id
 
-exports.deleteProduct = async (req, res, next)=>{
+exports.deleteProduct = catchAsyncError( async (req, res, next)=>{
     
     const product = await Product.findById(req.params.id);
 
      
     if (!product) {
-        return res.status(404).json({
-            sucesss: false,
-            message:'product not found'
-         })        
+        return next(new ErrorHandler('product not found', 404));    
     }
    
     await product.remove();
@@ -92,4 +85,4 @@ exports.deleteProduct = async (req, res, next)=>{
         message:'product is deleted'
     })
     
-}
+})
